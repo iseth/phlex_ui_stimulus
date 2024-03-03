@@ -6,10 +6,14 @@ export default class extends Controller {
     static targets = ["input", "group", "item", "empty"]
 
     connect() {
+        // need to deselect all items to clear any selected items from the previous state
+        this.deselectAll();
         this.inputTarget.focus();
         this.searchIndex = this.buildSearchIndex();
         this.toggleVisibility(this.emptyTargets, false);
         this.selectedIndex = -1;
+        const visibleItems = this.itemTargets.filter(item => !item.classList.contains('hidden'));
+        this.updateSelectedItem(visibleItems, 1);
     }
 
     filter(e) {
@@ -19,6 +23,7 @@ export default class extends Controller {
         const query = e.target.value.toLowerCase();
         if (query.length === 0) {
             this.resetVisibility();
+            this.updateSelectedItem(this.itemTargets, 1);
             return;
         }
 
@@ -27,6 +32,9 @@ export default class extends Controller {
         const results = this.searchIndex.search(query);
         results.forEach(result => this.toggleVisibility([result.item.element], true));
 
+        if (results.length > 0) {
+            this.toggleAriaSelected(results[0].item.element, true)
+        }
         this.toggleVisibility(this.emptyTargets, results.length === 0);
         this.updateGroupVisibility();
     }
@@ -70,6 +78,12 @@ export default class extends Controller {
             e.preventDefault();
             visibleItems[this.selectedIndex].click();
         }
+    }
+
+    handleMouseover(e) {
+        this.deselectAll();
+        this.selectedIndex = this.itemTargets.indexOf(e.target);
+        this.toggleAriaSelected(e.target, true);
     }
 
     updateSelectedItem(visibleItems, direction) {
