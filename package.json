@@ -5,7 +5,7 @@
   "main": "index.js",
   "homepage": "https://phlexui.com",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "build": "esbuild controllers/command_controller.js --outfile=controllers/built_command_controller.js --loader:.js=jsx"
   },
   "keywords": [
     "PhlexUI",
@@ -24,11 +24,15 @@
   "license": "ISC",
   "dependencies": {
     "@hotwired/stimulus": "^3.2.2",
+    "chart.js": "^4.4.1",
+    "cmdk": "^0.2.1",
     "date-fns": "^2.30.0",
+    "esbuild": "^0.20.1",
     "fuse.js": "^7.0.0",
     "motion": "^10.16.4",
     "mustache": "^4.2.0",
-    "tippy.js": "^6.3.7",
-    "chart.js": "^4.4.1"
+    "react": "^18.2.0",
+    "react-dom": "^18.2.0",
+    "tippy.js": "^6.3.7"
   }
 }

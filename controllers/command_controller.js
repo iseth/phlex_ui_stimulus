@@ -1,100 +1,80 @@
 import { Controller } from "@hotwired/stimulus";
-import Fuse from 'fuse.js';
+// import { Command } from "cmdk";
+import React from "react"
+import ReactDOM from "react-dom/client";
+import { Command as CommandPrimitive } from "cmdk"
+
 
 // Connects to data-controller="command"
 export default class extends Controller {
-    static targets = ["input", "group", "item", "empty"]
-
+    static targets = ["content", "input", "group", "item", "empty"]
     connect() {
-        this.inputTarget.focus();
-        this.searchIndex = this.buildSearchIndex();
-        this.toggleVisibility(this.emptyTargets, false);
-        this.selectedIndex = -1;
+        // ReactDOM.render(this.commandTarget, <input placeholder="jkllljk" />);
+        // console.log("connected");
+        // console.log(this.commandTarget);
+        // this.commandTarget.innerHTML = "<input placeholder='jkllljk' />";
+        const e = React.createElement;
+
+        const root = ReactDOM.createRoot(this.contentTarget);
+        // ReactDOM.render(this.contentTarget, <button>asdf</button>);
+
+        root.render(e('div', null, (
+        <>
+            <button>asdf</button>
+    <CommandPrimitive label="CommandPrimitive Menu">
+      <CommandPrimitive.Input />
+      <CommandPrimitive.List className="max-h-[300px] overflow-y-auto overflow-x-hidden">
+        <CommandPrimitive.Empty>No results found.</CommandPrimitive.Empty>
+
+        <CommandPrimitive.Group heading="Letters">
+          <CommandPrimitive.Item>a</CommandPrimitive.Item>
+          <CommandPrimitive.Item>b</CommandPrimitive.Item>
+          <CommandPrimitive.Separator />
+          <CommandPrimitive.Item>c</CommandPrimitive.Item>
+        </CommandPrimitive.Group>
+
+        <CommandPrimitive.Item>Apple</CommandPrimitive.Item>
+      </CommandPrimitive.List>
+    </CommandPrimitive>
+
+        </>
+            // Command.displayName = CommandPrimitive.displayName
+        )));
     }
 
-    filter(e) {
-        // Deselect any previously selected item
-        this.deselectAll();
-
-        const query = e.target.value.toLowerCase();
-        if (query.length === 0) {
-            this.resetVisibility();
-            return;
-        }
-
-        this.toggleVisibility(this.itemTargets, false);
-
-        const results = this.searchIndex.search(query);
-        results.forEach(result => this.toggleVisibility([result.item.element], true));
-
-        this.toggleVisibility(this.emptyTargets, results.length === 0);
-        this.updateGroupVisibility();
+    command(props){
+        return (
+            <CommandPrimitive
+                className={"flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground"}
+                {...props}
+            />
+        )
+        // const Command = React.forwardRef(({ className, ...props }, ref) => (
+        // <CommandPrimitive
+        //     ref={ref}
+        //     className={cn(
+        //     "flex h-full w-full flex-col overflow-hidden rounded-md bg-popover text-popover-foreground",
+        //     className
+        //     )}
+        //     {...props}
+        // />
+        // ))
+        // Command.displayName = CommandPrimitive.displayName
     }
 
-    toggleVisibility(elements, isVisible) {
-        elements.forEach(el => el.classList.toggle("hidden", !isVisible));
+    commandDialog({children, ...props}){
+        return (
+            <Dialog {...props}>
+                <DialogContent className="overflow-hidden p-0">
+                    <Command className="[&_[cmdk-group-heading]]:px-2 [&_[cmdk-group-heading]]:font-medium [&_[cmdk-group-heading]]:text-muted-foreground [&_[cmdk-group]:not([hidden])_~[cmdk-group]]:pt-0 [&_[cmdk-group]]:px-2 [&_[cmdk-input-wrapper]_svg]:h-5 [&_[cmdk-input-wrapper]_svg]:w-5 [&_[cmdk-input]]:h-12 [&_[cmdk-item]]:px-2 [&_[cmdk-item]]:py-3 [&_[cmdk-item]_svg]:h-5 [&_[cmdk-item]_svg]:w-5">
+                    {children}
+                    </Command>
+                </DialogContent>
+            </Dialog>
+        )
     }
 
-    updateGroupVisibility() {
-        this.groupTargets.forEach(group => {
-            const hasVisibleItems = group.querySelectorAll("[data-command-target='item']:not(.hidden)").length > 0;
-            this.toggleVisibility([group], hasVisibleItems);
-        });
-    }
-
-    resetVisibility() {
-        this.toggleVisibility(this.itemTargets, true);
-        this.toggleVisibility(this.groupTargets, true);
-        this.toggleVisibility(this.emptyTargets, false);
-    }
-
-    buildSearchIndex() {
-        const options = {
-            keys: ["value"],
-            threshold: 0.2,
-            includeMatches: true,
-        };
-        const items = this.itemTargets.map(el => ({ value: el.dataset.value, element: el }));
-        return new Fuse(items, options);
-    }
-
-    handleKeydown(e) {
-        const visibleItems = this.itemTargets.filter(item => !item.classList.contains('hidden'));
-        if (e.key === 'ArrowDown') {
-            e.preventDefault();
-            this.updateSelectedItem(visibleItems, 1);
-        } else if (e.key === 'ArrowUp') {
-            e.preventDefault();
-            this.updateSelectedItem(visibleItems, -1);
-        } else if (e.key === 'Enter' && this.selectedIndex !== -1) {
-            e.preventDefault();
-            visibleItems[this.selectedIndex].click();
-        }
-    }
-
-    updateSelectedItem(visibleItems, direction) {
-        if (this.selectedIndex >= 0) {
-            this.toggleAriaSelected(visibleItems[this.selectedIndex], false);
-        }
-
-        this.selectedIndex += direction;
-
-        // Ensure the selected index is within the bounds of the visible items
-        if (this.selectedIndex < 0) {
-            this.selectedIndex = visibleItems.length - 1;
-        } else if (this.selectedIndex >= visibleItems.length) {
-            this.selectedIndex = 0;
-        }
-
-        this.toggleAriaSelected(visibleItems[this.selectedIndex], true);
-    }
-
-    toggleAriaSelected(element, isSelected) {
-        element.setAttribute('aria-selected', isSelected.toString());
-    }
-
-    deselectAll() {
-        this.itemTargets.forEach(item => this.toggleAriaSelected(item, false));
-        this.selectedIndex = -1;
-    }
+    // destroy(node){
+    //     ReactDOM.unmountComponentAtNode(node);
+    // }
 }
